@@ -31,4 +31,5 @@ export interface IChat {
   lastLoadedMessageId: string
   isScrollOver: boolean
   isFirstVisit: boolean
+  offset: number
 }

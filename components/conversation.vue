@@ -101,7 +101,7 @@ export default {
   watch: {
     'currentChat.lastLoadedMessageId'(id) {
       if (id && !this.currentChat.isScrollOver) {
-        this.scrollToLastLoadedMessage()
+        this.scrollToMessage(id)
       }
     },
   },
@@ -110,21 +110,20 @@ export default {
     this.$store.commit('chat/resetCurrentChat')
   },
   methods: {
-    scrollToLastLoadedMessage() {
-      if (this.currentChat.lastLoadedMessageId) {
-        this.$nextTick(() => {
-          const lastLoadedMessage = document.getElementById(
-            this.currentChat.lastLoadedMessageId,
-          )
-          if (!lastLoadedMessage) {
-            return
-          }
-          lastLoadedMessage.scrollIntoView({
-            block: this.currentChat.direction === 'bottom' ? 'end' : 'start',
-            behavior: 'auto',
-          })
-        })
+    scrollToMessage(messageId) {
+      if (!messageId) {
+        return
       }
+      this.$nextTick(() => {
+        const messageNode = document.getElementById(messageId)
+        if (!messageNode) {
+          return
+        }
+        messageNode.scrollIntoView({
+          block: this.currentChat.direction === 'bottom' ? 'end' : 'start',
+          behavior: 'auto',
+        })
+      })
     },
     async loadMore() {
       await this.$store.dispatch('chat/loadMessages')
@@ -132,7 +131,7 @@ export default {
     async handleIntersect({ loaded, complete }) {
       if (this.currentChat.hasNextPage && !this.currentChat.isMessagesLoading) {
         await this.loadMore()
-        this.scrollToLastLoadedMessage()
+        this.scrollToMessage(this.currentChat.lastLoadedMessageId)
         loaded()
       } else {
         complete()
@@ -168,19 +167,20 @@ export default {
         return
       }
 
+      const message = createMessage(this.text)
+
       this.$store.dispatch('chat/addMessage', {
         conversationId: this.activeConversation,
-        message: createMessage(this.text),
+        message,
       })
 
       this.text = ''
+      this.scrollToMessage(message.id)
     },
     readAllHandler() {
-      this.$store.commit('chat/setCurrentChat', {
-        lastLoadedMessageId:
-          this.currentChat.messages[this.currentChat.messages.length - 1].id,
-      })
-      this.scrollToLastLoadedMessage()
+      const lastLoadedMessageId =
+        this.currentChat.messages[this.currentChat.messages.length - 1].id
+      this.scrollToMessage(lastLoadedMessageId)
     },
   },
 }

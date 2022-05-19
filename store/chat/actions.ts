@@ -23,8 +23,15 @@ export default {
 
     const { messages: allMessages, unreadMessagesCount } = conversation
 
-    const { messages, page, size, hasNextPage, direction, isFirstVisit } =
-      state.currentChat
+    const {
+      messages,
+      page,
+      size,
+      hasNextPage,
+      direction,
+      isFirstVisit,
+      offset,
+    } = state.currentChat
 
     if (!hasNextPage) {
       return
@@ -32,17 +39,25 @@ export default {
 
     let from: number
     let to: number
+    let readMessages: IMessage[] = []
+    let unreadMessages: IMessage[] = []
+    let newOffset: number
 
     const firstUnreadMessageIndex = allMessages.length - unreadMessagesCount
 
-    const readMessages = allMessages.slice(0, firstUnreadMessageIndex)
-    const unreadMessages = allMessages.slice(firstUnreadMessageIndex)
+    if (isFirstVisit) {
+      readMessages = allMessages.slice(0, firstUnreadMessageIndex)
+      unreadMessages = allMessages.slice(firstUnreadMessageIndex)
+      newOffset = -unreadMessagesCount
+    } else {
+      readMessages = allMessages
+    }
 
     switch (direction) {
       // from bottom to top
       case 'top':
-        from = Math.max(readMessages?.length - size * page, 0)
-        to = Math.max(readMessages?.length - size * (page - 1), 0)
+        from = Math.max(readMessages?.length + offset - size * page, 0)
+        to = Math.max(readMessages?.length + offset - size * (page - 1), 0)
         break
       // from top to bottom
       default:
@@ -50,6 +65,11 @@ export default {
         to = page * size
         break
     }
+
+    console.log('from', from)
+    console.log('to', to)
+    console.log('unreadMessagesCount', unreadMessagesCount)
+    console.log('newOffset', offset)
 
     let newMessages = allMessages?.slice(from, to)
 
@@ -61,7 +81,7 @@ export default {
       return
     }
 
-    if (isFirstVisit) {
+    if (isFirstVisit && unreadMessages) {
       newMessages = newMessages.concat(unreadMessages)
     }
 
@@ -86,6 +106,7 @@ export default {
         isMessagesLoading: false,
         isFirstVisit: false,
         lastLoadedMessageId: getLastLoadedMessageId(),
+        offset: newOffset ?? offset,
       })
     })
   },
@@ -98,10 +119,12 @@ export default {
       message,
     })
     if (conversationId === state.activeConversation) {
-      const { messages, isScrollOver, lastLoadedMessageId } = state.currentChat
+      const { messages, isScrollOver, lastLoadedMessageId, offset } =
+        state.currentChat
       commit('setCurrentChat', {
         messages: [...messages, message],
         lastLoadedMessageId: !isScrollOver ? message.id : lastLoadedMessageId,
+        offset: offset - 1,
       })
     }
   },

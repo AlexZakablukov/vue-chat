@@ -35,7 +35,6 @@ export default {
   },
   mounted() {
     this.scrollObserver = new IntersectionObserver(([entry]) => {
-      console.log('entry', entry)
       if (entry && entry.isIntersecting && this.$refs.root) {
         this.isIntersecting = true
         this.scrollObserver.unobserve(this.$refs.root)
@@ -51,7 +50,6 @@ export default {
           },
         })
       }
-      console.log('this.options', this.options)
     }, this.options)
 
     if (this.$refs.root) {

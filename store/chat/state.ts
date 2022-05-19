@@ -14,6 +14,7 @@ export const initialCurrentChat = {
   lastLoadedMessageId: '',
   isScrollOver: true,
   isFirstVisit: true,
+  offset: 0,
 }
 
 const InitialChatState = (): ChatState => ({
