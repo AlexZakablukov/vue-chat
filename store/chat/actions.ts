@@ -128,4 +128,23 @@ export default {
       })
     }
   },
+  updateMessage(
+    { state, commit }: ActionsArguments<ChatState>,
+    { conversationId, message }: { conversationId: string; message: IMessage },
+  ) {
+    commit('updateMessageInConversation', {
+      conversationId,
+      message,
+    })
+    if (conversationId === state.activeConversation) {
+      const { messages } = state.currentChat
+      const messageIndex = messages.findIndex((msg) => msg.id === message.id)
+      const newMessages = [...messages]
+      newMessages[messageIndex] = { ...message }
+      commit('setCurrentChat', {
+        messages: newMessages,
+        editableMessageId: '',
+      })
+    }
+  },
 }

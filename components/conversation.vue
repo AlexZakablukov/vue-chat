@@ -26,6 +26,10 @@
               'is-unread':
                 currentChat.messages.length - unreadMessagesCount <= index,
             }"
+            :editable="currentChat.editableMessageId === message.id"
+            :enable-edit="() => enableEditMessageHandler(message.id)"
+            :disable-edit="disableEditMessageHandler"
+            :update-handler="updateMessageHandler"
           />
         </template>
       </div>
@@ -181,6 +185,22 @@ export default {
       const lastLoadedMessageId =
         this.currentChat.messages[this.currentChat.messages.length - 1].id
       this.scrollToMessage(lastLoadedMessageId)
+    },
+    enableEditMessageHandler(messageId) {
+      this.$store.commit('chat/setCurrentChat', {
+        editableMessageId: messageId,
+      })
+    },
+    disableEditMessageHandler() {
+      this.$store.commit('chat/setCurrentChat', {
+        editableMessageId: '',
+      })
+    },
+    updateMessageHandler(newMessage) {
+      this.$store.dispatch('chat/updateMessage', {
+        conversationId: this.activeConversation,
+        message: newMessage,
+      })
     },
   },
 }

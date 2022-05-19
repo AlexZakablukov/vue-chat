@@ -15,6 +15,7 @@ export const initialCurrentChat = {
   isScrollOver: true,
   isFirstVisit: true,
   offset: 0,
+  editableMessageId: '',
 }
 
 const InitialChatState = (): ChatState => ({

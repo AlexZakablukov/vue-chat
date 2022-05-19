@@ -32,4 +32,5 @@ export interface IChat {
   isScrollOver: boolean
   isFirstVisit: boolean
   offset: number
+  editableMessageId: string
 }

@@ -40,6 +40,30 @@ export default {
 
     state.conversations = updatedConversations
   },
+  updateMessageInConversation(
+    state: ChatState,
+    { conversationId, message }: { conversationId: string; message: IMessage },
+  ) {
+    const updatedConversations = [...state.conversations]
+
+    const conversationIndex = updatedConversations.findIndex(
+      (conversation) => conversation.id === conversationId,
+    )
+
+    updatedConversations[conversationIndex].messages = updatedConversations[
+      conversationIndex
+    ].messages.map((msg) => {
+      if (msg.id === message.id) {
+        return {
+          ...msg,
+          ...message,
+        }
+      }
+      return msg
+    })
+
+    state.conversations = updatedConversations
+  },
   resetUnreadMessages(state: ChatState, conversationId: string) {
     const conversationIndex = state.conversations.findIndex(
       (conversation) => conversation.id === conversationId,
