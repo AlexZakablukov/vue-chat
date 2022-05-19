@@ -29,5 +29,6 @@ export interface IChat {
   direction: 'top' | 'bottom'
   isMessagesLoading: boolean
   lastLoadedMessageId: string
-  unreadMessagesCount: number
+  isScrollOver: boolean
+  isFirstVisit: boolean
 }

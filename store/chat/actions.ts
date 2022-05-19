@@ -13,12 +13,19 @@ export default {
   },
   loadMessages({ state, commit }: ActionsArguments<ChatState>) {
     commit('setCurrentChat', { isMessagesLoading: true })
-    const allMessages =
-      state.conversations.find(
-        (conversation) => conversation.id === state.activeConversation,
-      )?.messages ?? []
+    const conversation = state.conversations.find(
+      (conversation) => conversation.id === state.activeConversation,
+    )
 
-    const { messages, page, size, hasNextPage, direction } = state.currentChat
+    if (!conversation?.messages) {
+      return
+    }
+
+    const { messages: allMessages, unreadMessagesCount } = conversation
+
+    const { messages, page, size, hasNextPage, direction, isFirstVisit } =
+      state.currentChat
+
     if (!hasNextPage) {
       return
     }
@@ -26,11 +33,16 @@ export default {
     let from: number
     let to: number
 
+    const firstUnreadMessageIndex = allMessages.length - unreadMessagesCount
+
+    const readMessages = allMessages.slice(0, firstUnreadMessageIndex)
+    const unreadMessages = allMessages.slice(firstUnreadMessageIndex)
+
     switch (direction) {
       // from bottom to top
       case 'top':
-        from = Math.max(allMessages?.length - size * page, 0)
-        to = Math.max(allMessages?.length - size * (page - 1), 0)
+        from = Math.max(readMessages?.length - size * page, 0)
+        to = Math.max(readMessages?.length - size * (page - 1), 0)
         break
       // from top to bottom
       default:
@@ -39,7 +51,7 @@ export default {
         break
     }
 
-    const newMessages = allMessages?.slice(from, to)
+    let newMessages = allMessages?.slice(from, to)
 
     if (!newMessages?.length) {
       commit('setCurrentChat', {
@@ -47,6 +59,21 @@ export default {
         isMessagesLoading: false,
       })
       return
+    }
+
+    if (isFirstVisit) {
+      newMessages = newMessages.concat(unreadMessages)
+    }
+
+    const getLastLoadedMessageId = () => {
+      if (direction === 'top') {
+        if (isFirstVisit) {
+          return readMessages[readMessages.length - 1].id
+        }
+        return newMessages[newMessages.length - 1].id
+      } else {
+        return newMessages[0].id
+      }
     }
 
     return delay(500).then(() => {
@@ -57,10 +84,8 @@ export default {
             : [...messages, ...newMessages],
         page: page + 1,
         isMessagesLoading: false,
-        lastLoadedMessageId:
-          direction === 'top'
-            ? newMessages[newMessages.length - 1].id
-            : newMessages[0].id,
+        isFirstVisit: false,
+        lastLoadedMessageId: getLastLoadedMessageId(),
       })
     })
   },
@@ -73,9 +98,10 @@ export default {
       message,
     })
     if (conversationId === state.activeConversation) {
+      const { messages, isScrollOver, lastLoadedMessageId } = state.currentChat
       commit('setCurrentChat', {
-        messages: [...state.currentChat.messages, message],
-        lastLoadedMessageId: message.id,
+        messages: [...messages, message],
+        lastLoadedMessageId: !isScrollOver ? message.id : lastLoadedMessageId,
       })
     }
   },

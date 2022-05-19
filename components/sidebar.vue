@@ -15,6 +15,9 @@
         <div v-if="conversation.unreadMessagesCount" class="unreads">
           {{ conversation.unreadMessagesCount }}
         </div>
+        <button @click.stop="() => addMessageToConversation(conversation.id)">
+          Add Message
+        </button>
       </li>
     </ul>
   </aside>
@@ -23,6 +26,7 @@
 <script>
 import { mapState } from 'vuex'
 import Friend from '~/components/friend.vue'
+import { createMessage } from '@/utils/chat'
 
 export default {
   name: 'SidebarChat',
@@ -38,6 +42,13 @@ export default {
         return
       }
       await this.$store.dispatch('chat/setActiveConversation', id)
+    },
+    addMessageToConversation(conversationId) {
+      const message = createMessage('New message')
+      this.$store.dispatch('chat/addMessage', {
+        conversationId,
+        message,
+      })
     },
   },
 }

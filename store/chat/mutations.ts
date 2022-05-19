@@ -22,15 +22,32 @@ export default {
     const conversationIndex = state.conversations.findIndex(
       (conversation) => conversation.id === conversationId,
     )
+
     const { id, messages, unreadMessagesCount } =
       state.conversations[conversationIndex]
 
-    const updateConversation = {
+    const isActiveConversation = conversationId === state.activeConversation
+
+    const updatedConversations = [...state.conversations]
+    updatedConversations[conversationIndex] = {
       id,
       messages: [...messages, message],
-      unreadMessagesCount: unreadMessagesCount + 1,
+      unreadMessagesCount:
+        isActiveConversation && !state.currentChat.isScrollOver
+          ? 0
+          : unreadMessagesCount + 1,
     }
 
-    state.conversations[conversationIndex] = updateConversation
+    state.conversations = updatedConversations
+  },
+  resetUnreadMessages(state: ChatState, conversationId: string) {
+    const conversationIndex = state.conversations.findIndex(
+      (conversation) => conversation.id === conversationId,
+    )
+
+    const updatedConversations = [...state.conversations]
+    updatedConversations[conversationIndex].unreadMessagesCount = 0
+
+    state.conversations = updatedConversations
   },
 }

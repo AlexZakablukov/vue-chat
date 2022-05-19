@@ -10,12 +10,24 @@
       @scroll="scrollHandler"
     >
       <div ref="conversationContent" class="conversation-content">
-        <Message
-          v-for="message in currentChat.messages"
-          :id="message.id"
-          :key="message.id"
-          :message="message"
-        />
+        <template v-for="(message, index) in currentChat.messages">
+          <div
+            v-if="currentChat.messages.length - unreadMessagesCount === index"
+            :key="`unread-separator-${index}`"
+            class="unreadSeparator"
+          >
+            Unread messages
+          </div>
+          <Message
+            :id="message.id"
+            :key="message.id"
+            :message="message"
+            :class="{
+              'is-unread':
+                currentChat.messages.length - unreadMessagesCount <= index,
+            }"
+          />
+        </template>
       </div>
       <InfiniteScroll
         class="conversation-scroll"
@@ -31,6 +43,13 @@
         <button type="submit">Send</button>
       </form>
     </footer>
+    <button
+      v-if="unreadMessagesCount"
+      class="unreadButton"
+      @click="readAllHandler"
+    >
+      {{ unreadMessagesCount }}
+    </button>
   </div>
 </template>
 
@@ -70,6 +89,13 @@ export default {
         rootMargin: '100px 0px 0px 0px',
         root: this.$refs.conversationContainer,
       }
+    },
+    unreadMessagesCount() {
+      return (
+        this.conversations.find(
+          (conversation) => conversation.id === this.activeConversation,
+        )?.unreadMessagesCount || 0
+      )
     },
   },
   watch: {
@@ -132,6 +158,7 @@ export default {
         this.$store.commit('chat/setCurrentChat', {
           isScrollOver: false,
         })
+        this.$store.commit('chat/resetUnreadMessages', this.activeConversation)
       }
     },
     handleSubmit(event) {
@@ -148,6 +175,13 @@ export default {
 
       this.text = ''
     },
+    readAllHandler() {
+      this.$store.commit('chat/setCurrentChat', {
+        lastLoadedMessageId:
+          this.currentChat.messages[this.currentChat.messages.length - 1].id,
+      })
+      this.scrollToLastLoadedMessage()
+    },
   },
 }
 </script>
@@ -157,6 +191,7 @@ export default {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 .conversation-container {
   display: flex;
@@ -176,5 +211,21 @@ export default {
 }
 .conversation-footer {
   padding: 12px;
+}
+.unreadSeparator {
+  background-color: grey;
+  text-align: center;
+  margin: 8px -16px;
+  padding: 8px 0;
+  color: white;
+}
+.unreadButton {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  background-color: darkgrey;
 }
 </style>

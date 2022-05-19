@@ -12,8 +12,8 @@ export const initialCurrentChat = {
   direction: 'top' as 'top',
   isMessagesLoading: false,
   lastLoadedMessageId: '',
-  isScrollOver: false,
-  unreadMessagesCount: 0,
+  isScrollOver: true,
+  isFirstVisit: true,
 }
 
 const InitialChatState = (): ChatState => ({
